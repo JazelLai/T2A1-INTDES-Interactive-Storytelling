@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Society - Game Completion</title>
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/game-of-squids');
+        @import url('https://fonts.cdnfonts.com/css/belshaw-donut-robot');
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: url('society.png') no-repeat center center / cover;
+            overflow: hidden;
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            cursor: url('robotcursor.png') 16 16, auto
+        }
+
+        .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5); 
+    z-index: 1; 
+}
+
+        .container {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2; 
+}
+
+.badge-text {
+    font-family: 'Belshaw Donut Robot', sans-serif;
+    font-size: 1rem;
+    color: white;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+    opacity: 0;
+    animation: fadeIn 1s ease-out forwards 2s;
+    margin: 0px -300; 
+}
+
+.badge {
+    width: 500px;
+    height: 500px;
+    object-fit: contain;
+    animation: 
+        slideUp 1.5s ease-out forwards,
+        float 3s ease-in-out infinite 1.5s,
+        glow 2s ease-in-out infinite 1.5s;
+    opacity: 0;
+    flex: none;
+    margin-top: 250px;  
+}
+
+
+        .title {
+            font-family: 'Game Of Squids', sans-serif;
+            font-size: 3rem;
+            color: pink;
+            text-shadow: 0 0 15px rgba(255,105,180,0.5);
+            opacity: 0;
+            animation: fadeIn 1s ease-out forwards 2s;
+    margin-top: -30px;  
+    margin-bottom: 300px;
+}
+
+        .play-again-btn {
+    background: pink;
+    color: black;
+    border: none;
+    padding: 10px 20px; /* Slightly smaller button */
+    font-size: 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Belshaw Donut Robot', sans-serif;
+    animation: flicker 1.5s infinite alternate;
+    opacity: 0;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    margin-top: 5px; /* Moves button slightly up */
+    position: absolute;
+    bottom: 40px; /* Fixed position at bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 0; /* Remove previous margin */
+}
+
+        .play-again-btn:hover {
+            box-shadow: 0 0 15px pink;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(255,105,180,0.8)); }
+            50% { filter: drop-shadow(0 0 25px rgba(255,105,180,1)); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; box-shadow: 0 0 15px rgba(255,105,180,0.8); }
+        }
+
+        .badge-text, .title {
+    transform: translateY(-100px);
+}
+
+        .badge-title-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+    </style>
+</head>
+<body>
+
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="badge-title-group">
+            <img src="badge.png" class="badge" alt="Survivor Badge">
+            <p class="badge-text">HERE'S YOUR BADGE</p> 
+            <h1 class="title">YOU SURVIVED THE GAMES</h1>
+        </div>
+    
+        <a href="firstpage.html" class="play-again-btn">Play again</a>
+    </div>
+
+    <audio id="background-music" loop>
+        <source src="gameend.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+
+        // Get the audio element
+        let bgMusic = document.getElementById("background-music");
+
+bgMusic.volume = 0.1;
+
+// Function to restart music if it stops
+bgMusic.addEventListener("ended", function() {
+this.currentTime = 0; 
+this.play(); 
+});
+
+// Auto-play on page load
+window.addEventListener("load", function() {
+bgMusic.play().catch(error => {
+console.log("Autoplay blocked, user interaction needed");
+});
+});
+</script>
+
+</body>
+</html>
