@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gen AI Lesson 2</title>
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/belshaw-donut-robot');
+        @import url('https://fonts.cdnfonts.com/css/game-of-squids');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Game Of Squids', sans-serif;
+            height: 100vh;
+            background: url('bunker.png') center center;
+            background-size: cover;
+            color: white;
+            cursor: url('robotcursor.png') 16 16, auto
+        }
+
+        /* Player info container */
+        .player-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            z-index: 3;
+        }
+
+        .player-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid pink;
+        }
+
+        .enlarge-label {
+    position: absolute;
+    bottom: 125px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Belshaw Donut Robot', sans-serif;
+    color: pink;
+    font-size: 12px;
+    background-color: rgba(0, 0, 0, 0.7); 
+    padding: 2px 5px; 
+    border-radius: 0px; 
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+    cursor: pointer; 
+    transition: opacity 0.3s ease-in-out;
+}
+
+.enlarge-label:hover {
+    opacity: 0.7;
+}
+
+        .player-number {
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        /* Robot container */
+        .robot-container {
+            position: absolute;
+            left: -250px;
+            bottom: -6.5%;
+            width: 910px;
+            height: auto;
+        }
+
+        .robot-container img {
+            width: 100%;
+            height: auto;
+        }
+
+        /* Lesson container */
+        .lesson-container {
+            position: absolute;
+            right: 20px;
+            top: 30%;
+            transform: translateY(-30%);
+            width: 60%;
+            height: 70%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lesson-title {
+            font-family: 'Game Of Squids', sans-serif;
+            font-size: 1.5rem;
+            text-align: center;
+            color: pink;
+            margin-bottom: -8px;
+        }
+
+        .lesson-slide {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            margin-top: -15px;
+        }
+
+        .slide-active {
+            display: flex;
+        }
+
+        /* Media styling */
+        .lesson-media {
+            max-width: 80%;
+            height: 60%;
+            object-fit: contain;
+            border: 2px solid pink;
+            border-radius: 10px;
+            margin: 1px 0;
+            cursor: pointer;
+        }
+
+        .lesson-text {
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 1.2rem;
+            text-align: center;
+            max-width: 80%;
+            margin: 14px 0;
+            line-height: 1.1;
+        }
+
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 3rem;
+            color: pink;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            opacity: 0.8;
+        }
+
+        .nav-arrow:hover {
+            opacity: 1;
+            color: pink;
+        }
+
+        #prevArrow {
+            left: 10px;
+            color: pink;
+        }
+
+        #nextArrow {
+            right: 10px;
+            color: pink;
+        }
+
+        /* Game button */
+        .game-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: pink;
+            border: none;
+            color: black;
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            animation: flicker 1.5s infinite alternate;
+            display: none;
+        }
+
+/* Full-screen Image Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 95%;
+    max-height: 95%;
+}
+
+.modal img {
+    border: none;
+    box-shadow: none;
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 2rem;
+    color: pink;
+    cursor: pointer;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+    z-index: 1001;
+    background: rgba(0,0,0,0.7);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* Remove any residual borders */
+.modal,
+.modal * {
+    border: none !important;
+    outline: none !important;
+}
+
+        .game-button:hover {
+            box-shadow: 0 0 15px pink;
+            transform: scale(1.1);
+        }
+
+        .nav-arrow:hover {
+            color: pink;
+        }
+
+        .arrow-left { left: 10px; }
+        .arrow-right { right: 10px; }
+
+        /* Progress dots */
+        .progress-dots {
+            display: flex;
+            gap: 8px;
+            position: absolute;
+            bottom: 25px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: gray;
+            transition: background 0.3s;
+        }
+
+        .dot-active {
+            background: pink;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="player-info">
+        <img src="" class="player-photo" id="playerPhoto">
+        <div class="player-number" id="playerNumber">Player 000</div>
+    </div>
+
+    <!-- Robot -->
+    <div class="robot-container">
+        <img id="robotImage" src="kindrobot.png" alt="Robot Mentor">
+    </div>
+
+    <!-- Lesson container -->
+    <div class="lesson-container">
+
+        <!-- Slide 1 -->
+        <div class="lesson-slide slide-active" id="slide1">
+            <h2 class="lesson-title">What Makes a Good Gen AI Prompt?</h2>
+            <img class="lesson-media" src="betterprompts.png" alt="Good Gen AI Prompt">
+            <div class="enlarge-label">Click to enlarge</div>
+            <p class="lesson-text">There are 5 steps to crafting an effective Gen AI prompt.</p>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="lesson-slide" id="slide2">
+            <h2 class="lesson-title">Better Prompt Tips</h2>
+            <img class="lesson-media" src="prompttips.png" alt="Prompt Tips">
+            <div class="enlarge-label">Click to enlarge</div>
+            <p class="lesson-text">Use clear, natural, and concise language, provide context, and refine prompts for better AI responses.</p>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="lesson-slide" id="slide3">
+            <h2 class="lesson-title">Using images</h2>
+            <video class="lesson-media" src="imageprompt.mp4" autoplay controls></video>
+            <p class="lesson-text">Generate high-quality images by crafting precise prompts using the image upload feature on Gen AI platforms.</p>
+        </div>
+
+        <!-- Navigation Arrows -->
+        <button class="nav-arrow arrow-left" id="prevLesson" style="display: none;">&#9665;</button>
+        <button class="nav-arrow arrow-right" id="nextLesson">&#9655;</button>
+
+        <!-- Progress Dots -->
+        <div class="progress-dots">
+            <div class="dot dot-active"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeImageModal()">&times;</span>
+            <img id="modalImage">
+        </div>
+    </div>
+
+    <button class="game-button" onclick="location.href='gametwo.html'">Go to Game</button>
+
+    <audio id="background-music" loop>
+        <source src="roboticsound.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+
+    // Get the audio element
+    let bgMusic = document.getElementById("background-music");
+
+    bgMusic.volume = 0.02;
+
+    // Function to restart music if it stops
+    bgMusic.addEventListener("ended", function() {
+        this.currentTime = 0; 
+        this.play(); 
+    });
+
+    // Auto-play on page load
+    window.addEventListener("load", function() {
+        bgMusic.play().catch(error => {
+            console.log("Autoplay blocked, user interaction needed");
+        });
+    });
+
+        const playerPhoto = document.getElementById('playerPhoto');
+        const playerNumber = document.getElementById('playerNumber');
+        const robot = document.getElementById('robot');
+        const textBox = document.getElementById('textBox');
+        let dialogState = 0;
+        const savedNumber = localStorage.getItem('playerNumber') || '001';
+
+        playerPhoto.src = localStorage.getItem('playerPhoto');
+        playerNumber.textContent = `Player ${savedNumber}`;
+
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.lesson-slide');
+        const dots = document.querySelectorAll('.dot');
+        const prevLesson = document.getElementById('prevLesson');
+        const nextLesson = document.getElementById('nextLesson');
+        const goToGame = document.getElementById('goToGame');
+        const robotImage = document.getElementById('robotImage');
+
+        function updateLesson() {
+            slides.forEach((slide, index) => {
+                slide.classList.toggle('slide-active', index === currentSlide);
+                dots[index].classList.toggle('dot-active', index === currentSlide);
+            });
+
+            prevLesson.style.display = currentSlide > 0 ? "block" : "none";
+            nextLesson.style.display = currentSlide < slides.length - 1 ? "block" : "none";
+
+            if (currentSlide === 1) {
+                robotImage.src = "instructionalrobot.png";
+            } else {
+                robotImage.src = "kindrobot.png";
+            }
+
+            document.querySelector(".game-button").style.display = currentSlide === 2 ? "block" : "none";
+        }
+
+        nextLesson.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateLesson();
+            }
+        });
+
+        prevLesson.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateLesson();
+            }
+        });
+
+        updateLesson();
+
+        // Modal functionality
+        function openImageModal(src) {
+            const imageModal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+
+            modalImage.src = src;
+            imageModal.style.display = "flex";
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = "none";
+        }
+
+        // Attach event listener to images inside lesson slides
+        document.querySelectorAll('.lesson-slide img').forEach(img => {
+            img.addEventListener('click', function() {
+                openImageModal(this.src);
+            });
+        });
+
+        document.querySelectorAll('.enlarge-label').forEach(text => {
+    text.addEventListener('click', function() {
+        const img = this.previousElementSibling; // Get the image above the text
+        if (img && img.classList.contains('lesson-media')) {
+            openImageModal(img.src);
+        }
+    });
+});
+
+    </script>
+</body>
+</html>
