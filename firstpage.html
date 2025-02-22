@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Start Page</title>
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/belshaw-donut-robot'); 
+        @import url('https://fonts.cdnfonts.com/css/game-of-squids'); 
+        @import url('https://fonts.cdnfonts.com/css/robots-revenge'); 
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Game Of Squids', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: black; 
+            cursor: url('robotcursor.png') 16 16, auto
+}
+
+        video#backgroundVideo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .container {
+            text-align: center;
+            color: white;
+            opacity: 0; 
+            transform: scale(0.8);
+            transition: opacity 1s ease, transform 1s ease;
+            z-index: 1;
+            margin-top: 100px; 
+        }
+
+        #startText {
+            font-size: 3rem;
+            animation: flicker 2s infinite;
+            margin-bottom: 30px; 
+        }
+
+        .start-button {
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 2rem; 
+            padding: 15px 30px; 
+            color: white;
+            background: rgb(219, 78, 244);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .start-button:hover {
+            box-shadow: 0 0 15px pink;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- Video element: muted, no controls, and playsinline for mobile -->
+    <video id="backgroundVideo" muted playsinline preload="auto">
+        <source src="loadingpage.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Game UI (hidden initially) -->
+    <div class="container" id="content">
+        <div id="startText">THE YEAR IS 2095</b> </div>
+        <button class="start-button" onclick="location.href='identificationpage.html'"> Let's Go! </button>
+    </div>
+
+    <audio id="background-music" loop>
+        <source src="roboticsound.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+
+    // Get the audio element
+    let bgMusic = document.getElementById("background-music");
+
+    bgMusic.volume = 0.1;
+
+    // Function to restart music if it stops
+    bgMusic.addEventListener("ended", function() {
+        this.currentTime = 0; 
+        this.play(); 
+    });
+
+    // Auto-play on page load
+    window.addEventListener("load", function() {
+        bgMusic.play().catch(error => {
+            console.log("Autoplay blocked, user interaction needed");
+        });
+    });
+
+        const video = document.getElementById('backgroundVideo');
+        const content = document.getElementById('content');
+
+        // 1. Wait for user interaction (click) to start the video
+        document.addEventListener("click", () => {
+            video.play().then(() => {
+                console.log("Video started playing.");
+
+                // 2. Show game UI after 4 seconds of video playback
+                setTimeout(() => {
+                    content.style.opacity = '1';
+                    content.style.transform = 'scale(1)';
+                }, 4000);
+            }).catch(error => {
+                console.log("Video playback failed:", error);
+            });
+        });
+
+        // 3. Pause at the last frame when the video ends
+        video.addEventListener('ended', () => {
+            video.pause();
+        });
+
+    </script>
+</body>
+
+</html>
