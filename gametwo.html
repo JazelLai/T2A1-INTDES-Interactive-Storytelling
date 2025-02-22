@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forest Maze - AI Edition</title>
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/belshaw-donut-robot');
+        @import url('https://fonts.cdnfonts.com/css/game-of-squids');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            transition: background 0.5s ease;
+            cursor: url('robotcursor.png') 16 16, auto
+        }
+
+        .game-container {
+            position: relative;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .instructions-box {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            width: 85%;
+            max-width: 650px;
+            border: 3px solid pink;
+            font-size: 1.3rem;
+            line-height: 1.1;
+        }
+
+        .question-box {
+            position: absolute;
+            top: 40%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 80%;
+            border: 3px solid pink;
+            max-width: 600px;
+            text-align: center;
+            display: none;
+        }
+
+        .arrows-container {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            gap: 80px;
+            z-index: 2;
+            display: none;
+            align-items: center;
+        }
+
+        .arrow {
+            font-size: 4rem;
+            color: pink;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid pink;
+        }
+
+        .arrow:hover {
+            transform: scale(1.2);
+            background: rgba(255,192,203,0.2);
+        }
+
+        .answer-label {
+    color: white;
+    font-size: 1.2rem;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px 15px;
+    border-radius: 10px;
+    min-width: 220px; /* Smaller to fit screen */
+    max-width: 270px; 
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: normal;
+}
+
+.click-to-continue {
+            position: fixed;
+      bottom: 20px;
+      right: 20px;
+      color: rgba(255,255,255,0.8);
+      font-family: 'Belshaw Donut Robot', sans-serif;
+      font-size: 1.2rem;
+      animation: pulse 2s infinite;
+      display: block;
+      z-index: 5;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: red;
+            font-size: 3em;
+            flex-direction: column;
+            font-family: 'Game Of Squids', sans-serif;
+            pointer-events: auto;
+        }
+
+        .cross {
+            position: absolute;
+            top: 35px;
+            left: 32px;
+            font-size: 4em;
+            color: red;
+            font-family: 'Game Of Squids', sans-serif;
+            display: none;
+            z-index: 5;
+            width: 60px;
+            height: 60px;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+
+        .retry-button {
+            background: red;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 7px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 1rem; 
+            width: 180px; 
+            height: 50px; 
+            text-align: center;
+            display: block; 
+            position: relative;
+            z-index: 1000; 
+}
+
+        .player-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            z-index: 3;
+        }
+
+        .player-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid pink;
+        }
+
+        .player-number {
+            font-size: 1.5rem;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="player-info">
+        <img src="" class="player-photo" id="playerPhoto">
+        <div class="player-number" id="playerNumber">Player 000</div>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <div class="cross" id="cross">✖</div>
+
+        <div class="instructions-box" id="instructionsBox">
+            <div id="instructionsText">Welcome to Forest Maze!</div>
+        </div>
+
+        <div class="question-box" id="questionBox">
+            <h2 id="questionText"></h2>
+        </div>
+
+        <div class="arrows-container" id="arrowsContainer">
+            <span class="answer-label" id="leftAnswer"></span>
+            <div class="arrow" id="leftArrow">&#8592;</div>
+            <div class="arrow" id="rightArrow">&#8594;</div>
+            <span class="answer-label" id="rightAnswer"></span>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <div>GAME OVER</div>
+            <button class="retry-button" onclick="retryQuestion()">Retry</button>
+        </div>
+    </div>
+
+    <div id="clickToContinue" class="click-to-continue">Click anywhere to continue</div>
+
+    <audio id="background-music" loop>
+        <source src="roboticsound.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="gameover-sound">
+        <source src="gameover.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="victory-sound" loop>
+        <source src="stagepassed.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+
+            // Get the audio element
+    let bgMusic = document.getElementById("background-music");
+
+bgMusic.volume = 0.1;
+
+// Function to restart music if it stops
+bgMusic.addEventListener("ended", function() {
+    this.currentTime = 0; 
+    this.play(); 
+});
+
+// Auto-play on page load
+window.addEventListener("load", function() {
+    bgMusic.play().catch(error => {
+        console.log("Autoplay blocked, user interaction needed");
+    });
+});
+
+        const playerPhoto = document.getElementById('playerPhoto');
+        const playerNumber = document.getElementById('playerNumber');
+        const savedNumber = localStorage.getItem('playerNumber') || '001';
+
+        playerPhoto.src = localStorage.getItem('playerPhoto');
+        playerNumber.textContent = `Player ${savedNumber}`;
+
+        let currentQuestion = 0;
+        const questions = [
+            { question: "Which is the better prompt?", answers: { left: "Use a video to tell me about climate change", right: "Act as an environmentalist. Explain effects of climate change for students with data with a video"}, correct: "right", background: "foresttwo.png" },
+            { question: "Which prompt is more effective in terms of format", answers: { left: "Teach me 10 basic French phrases with audio", right: "How do people speak French?" }, correct: "left", background: "forestthree.png" },
+            { question: "How does images improve your prompt?", answers: { left: "Make the prompt visually appealing.", right: "It provides extra context for a more accurate response" }, correct: "right", background: "forestfour.png" }
+        ];
+
+        document.getElementById('gameContainer').style.background = "url('forestone.png') no-repeat center center/cover";
+
+        let instructionStep = 0;
+        document.body.addEventListener('click', function() {
+            const instructionsBox = document.getElementById('instructionsBox');
+            const instructionsText = document.getElementById('instructionsText');
+            const clickToContinue = document.getElementById('clickToContinue');
+
+            if (instructionStep === 0) {
+                instructionsText.textContent = "In this game, you must navigate the forest by choosing the correct direction and complete the circuit match task at the end or you risk losing your identity!";
+                clickToContinue.style.display = 'none';
+                instructionStep++;
+            } else if (instructionStep === 1) {
+                instructionsText.textContent = "Good luck!";
+                instructionStep++;
+            } else if (instructionStep === 2) {
+                instructionsBox.style.display = 'none';
+                startGame();
+            }
+        });
+
+        function startGame() {
+    document.getElementById('arrowsContainer').style.display = 'flex';
+    document.getElementById('leftAnswer').style.display = 'block';
+    document.getElementById('rightAnswer').style.display = 'block';
+    showQuestion(currentQuestion);
+}
+
+        function showQuestion(index) {
+            const question = questions[index];
+            document.getElementById('questionBox').style.display = 'block';
+            document.getElementById('questionText').textContent = question.question;
+            document.getElementById('leftAnswer').textContent = question.answers.left;
+            document.getElementById('rightAnswer').textContent = question.answers.right;
+            document.getElementById('gameContainer').style.background = `url('${question.background}') no-repeat center center/cover`;
+            document.getElementById('leftArrow').onclick = () => checkDirection("left");
+            document.getElementById('rightArrow').onclick = () => checkDirection("right");
+        }
+
+        function checkDirection(direction) {
+            if (direction === questions[currentQuestion].correct) {
+                currentQuestion < questions.length - 1 ? showQuestion(++currentQuestion) : window.location.href = "gametwoparttwo.html";
+            } else {
+                document.getElementById('gameOver').style.display = 'flex';
+                
+document.getElementById('cross').style.display = 'flex';
+document.getElementById('arrowsContainer').style.display = 'none'; 
+document.getElementById('questionBox').style.visibility = 'hidden';
+document.getElementById('questionBox').style.pointerEvents = 'none';
+document.getElementById('leftAnswer').style.visibility = 'hidden';
+document.getElementById('rightAnswer').style.visibility = 'hidden';
+document.getElementById('leftAnswer').style.pointerEvents = 'none';
+document.getElementById('rightAnswer').style.pointerEvents = 'none';
+document.getElementById('leftArrow').style.display = 'none'; 
+document.getElementById('rightArrow').style.display = 'none';
+
+let gameOverSound = document.getElementById('gameover-sound');
+        gameOverSound.currentTime = 0;  // Reset sound to start
+        gameOverSound.play();
+
+document.querySelectorAll('.answer-label').forEach(label => {
+    label.style.display = 'none';
+});
+            }
+        }
+
+        function retryQuestion() {
+    document.getElementById('gameOver').style.display = 'none';
+    document.getElementById('cross').style.display = 'none';
+    document.getElementById('questionBox').style.visibility = 'visible';
+    document.getElementById('questionBox').style.pointerEvents = 'auto';
+    document.getElementById('arrowsContainer').style.display = 'flex';
+    document.getElementById('leftAnswer').style.visibility = 'visible';
+    document.getElementById('rightAnswer').style.visibility = 'visible';
+    document.getElementById('leftAnswer').style.pointerEvents = 'auto';
+    document.getElementById('rightAnswer').style.pointerEvents = 'auto';
+    document.getElementById('leftArrow').style.display = 'inline-block'; 
+    document.getElementById('rightArrow').style.display = 'inline-block';
+
+    document.querySelectorAll('.answer-label').forEach(label => {
+        label.style.display = 'block';
+    });
+
+    if (currentQuestion === 0) {
+        document.getElementById('gameContainer').style.background = "url('forestone.png') no-repeat center center/cover";
+        document.getElementById('questionText').textContent = questions[0].question;
+        document.getElementById('leftAnswer').textContent = questions[0].answers.left;
+        document.getElementById('rightAnswer').textContent = questions[0].answers.right;
+
+        // Re-enable event listeners
+        document.getElementById('leftArrow').onclick = () => checkDirection("left");
+        document.getElementById('rightArrow').onclick = () => checkDirection("right");
+    }
+}
+
+const retryBtn = document.querySelector('.retry-button');
+    retryBtn.style.pointerEvents = 'auto'; // Ensures it's clickable
+    retryBtn.style.zIndex = '1000';
+
+    document.querySelectorAll('.answer-label').forEach(label => {
+    label.style.display = 'block';
+});
+
+        const imagePaths = ["foresttwo.png", "forestthree.png", "forestfour.png"];
+const preloadedImages = [];
+
+imagePaths.forEach((path) => {
+    const img = new Image();
+    img.src = path;
+    preloadedImages.push(img);
+});
+
+    </script>
+</body>
+</html>
