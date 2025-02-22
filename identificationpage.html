@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identification Page</title>
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/belshaw-donut-robot');
+        @import url('https://fonts.cdnfonts.com/css/game-of-squids');
+        @import url('https://fonts.cdnfonts.com/css/robots-revenge');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Game Of Squids', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('smilehere.gif') center center;
+            background-size: contain;
+            cursor: url('robotcursor.png') 16 16, auto
+        }
+
+        .camera-button {
+            position: absolute;
+            bottom: 30px;
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            color: rgb(0, 0, 0);
+            background: pink;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            z-index: 2;
+        }
+
+        .camera-button:hover {
+            box-shadow: 0 0 15px pink;
+        }
+
+        /* Adjusted camera preview size */
+        #cameraPreview, #capturedPhoto {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 540px;  
+            height: 300px; 
+            object-fit: contain; 
+            display: none;
+            z-index: 3;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .confirmation-buttons {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            gap: 20px;
+            z-index: 4;
+            cursor: pointer;
+        }
+
+        .confirmation-button {
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            color: rgb(0, 0, 0);
+            background: pink;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .number-container {
+            position: relative;
+            text-align: center;
+            color: white;
+            z-index: 2;
+            display: none;
+        }
+
+        /* Side-by-side layout */
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #numberInput {
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 1.5rem;
+            padding: 10px;
+            border: 2px solid pink;
+            border-radius: 10px;
+            background: transparent;
+            color: white;
+            width: 150px;
+            text-align: center;
+        }
+
+        .submit-btn {
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 1.2rem;
+            padding: 10px 25px;
+            color: rgb(0, 0, 0);
+            background: pink;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+    box-shadow: 0 0 15px pink; 
+}
+
+    </style>
+</head>
+<body>
+    <button class="camera-button" id="cameraButton">Allow Camera</button>
+    <video id="cameraPreview" autoplay></video>
+    <img id="capturedPhoto" alt="Captured photo">
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="confirmation-buttons" id="confirmationButtons">
+        <button class="confirmation-button" id="retakeButton">Retake</button>
+        <button class="confirmation-button" id="confirmButton">Confirm</button>
+    </div>
+
+    <div class="number-container" id="numberContainer">
+        <div style="font-size: 2rem; margin-bottom: 20px;">Enter Player Number</div>
+        <div class="input-group">
+            <input type="text" id="numberInput" inputmode="numeric" pattern="\d{3}" 
+                   placeholder="000" maxlength="3" title="3-digit number required">
+            <button class="submit-btn" onclick="submitNumber()">Submit</button>
+        </div>
+    </div>
+
+    <audio id="background-music" loop>
+        <source src="roboticsound.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+
+    // Get the audio element
+    let bgMusic = document.getElementById("background-music");
+
+    bgMusic.volume = 0.1;
+
+    // Function to restart music if it stops
+    bgMusic.addEventListener("ended", function() {
+        this.currentTime = 0; 
+        this.play(); 
+    });
+
+    // Auto-play on page load
+    window.addEventListener("load", function() {
+        bgMusic.play().catch(error => {
+            console.log("Autoplay blocked, user interaction needed");
+        });
+    });
+
+        const cameraButton = document.getElementById('cameraButton');
+        const cameraPreview = document.getElementById('cameraPreview');
+        const capturedPhoto = document.getElementById('capturedPhoto');
+        const overlay = document.getElementById('overlay');
+        const confirmationButtons = document.getElementById('confirmationButtons');
+        const numberContainer = document.getElementById('numberContainer');
+        const retakeButton = document.getElementById('retakeButton');
+        const confirmButton = document.getElementById('confirmButton');
+        const numberInput = document.getElementById('numberInput');
+
+        let stream;
+        let photoDataUrl;
+
+        cameraButton.addEventListener('click', async () => {
+            try {
+                if (!stream) {
+                    // Start camera
+                    stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            width: { ideal: 600 },  // Match display size
+                            height: { ideal: 300 }
+                        } 
+                    });
+                    cameraPreview.srcObject = stream;
+                    cameraPreview.style.display = 'block';
+                    cameraButton.textContent = "Capture Photo";
+                } else {
+                    // Capture photo
+                    const canvas = document.createElement('canvas');
+                    canvas.width = cameraPreview.videoWidth;
+                    canvas.height = cameraPreview.videoHeight;
+                    canvas.getContext('2d').drawImage(cameraPreview, 0, 0);
+                    photoDataUrl = canvas.toDataURL('image/png');
+                    
+                    capturedPhoto.src = photoDataUrl;
+                    cameraPreview.style.display = 'none';
+                    capturedPhoto.style.display = 'block';
+                    overlay.style.display = 'block';
+                    confirmationButtons.style.display = 'flex';
+                    cameraButton.style.display = 'none';
+                }
+            } catch (error) {
+                alert("Camera error: " + error.message);
+            }
+        });
+
+        retakeButton.addEventListener('click', () => {
+            capturedPhoto.style.display = 'none';
+            cameraPreview.style.display = 'block';
+            confirmationButtons.style.display = 'none';
+            overlay.style.display = 'none';
+            cameraButton.style.display = 'block';
+        });
+
+        confirmButton.addEventListener('click', () => {
+            // Change background to foursmiles.gif
+            document.body.style.background = "url('foursmiles.gif') center center/contain";
+            
+            // Hide photo elements
+            capturedPhoto.style.display = 'none';
+            cameraPreview.style.display = 'none';
+            overlay.style.display = 'none';
+            confirmationButtons.style.display = 'none';
+            
+            // Show number input
+            numberContainer.style.display = 'block';
+            
+            // Stop camera stream
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        });
+
+        // Input validation
+        numberInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3);
+        });
+
+        function submitNumber() {
+            if (/^\d{3}$/.test(numberInput.value)) {
+                if (confirm(`Player ${numberInput.value} confirmed!`)) {
+                    window.location.href = 'secondpage.html';
+                }
+            } else {
+                alert("Please enter exactly 3 numbers");
+            }
+        }
+
+        function submitNumber() {
+    if (/^\d{3}$/.test(numberInput.value)) {
+        if (confirm(`Player ${numberInput.value} confirmed!`)) {
+            // Save photo and number to localStorage
+            localStorage.setItem('playerPhoto', photoDataUrl);
+            localStorage.setItem('playerNumber', numberInput.value);
+
+            // Redirect to secondpage.html
+            window.location.href = 'secondpage.html';
+        }
+    } else {
+        alert("Please enter exactly 3 numbers");
+    }
+}
+    </script>
+</body>
+</html>

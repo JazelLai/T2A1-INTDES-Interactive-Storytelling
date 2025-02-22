@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Light Green Light - AI Edition</title>
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/belshaw-donut-robot');
+        @import url('https://fonts.cdnfonts.com/css/game-of-squids');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            transition: background 0.5s ease;
+            cursor: url('robotcursor.png') 16 16, auto
+        }
+
+        .game-container {
+            position: relative;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+        }
+
+                /* Player info container */
+                .player-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            z-index: 3;
+        }
+
+        .player-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid pink;
+        }
+
+        .player-number {
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .rules-box {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 25px; 
+    border-radius: 10px;
+    text-align: center;
+    width: 85%; 
+    max-width: 650px; 
+    border: 3px solid pink; 
+    font-family: 'Belshaw Donut Robot', sans-serif;
+    font-size: 1.3rem; 
+    line-height: 1.1;
+}
+
+        .question-box {
+            position: absolute;
+            top: 58%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            display: none;
+            font-family: 'Belshaw Donut Robot', sans-serif;
+        }
+
+        .answer-option {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .answer-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .congrats-box {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    color: limegreen;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Game Of Squids', sans-serif;
+}
+
+        .next-lesson-btn {
+            background: pink;
+            border: none;
+            color: black;
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            animation: flicker 1.5s infinite alternate;
+            display: none;
+        }
+
+        .next-lesson-btn:hover {
+            box-shadow: 0 0 15px pink;
+            transform: scale(1.1);
+        }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: red;
+            font-size: 3em;
+            flex-direction: column;
+            font-family: 'Game Of Squids', sans-serif;
+        }
+
+        .cross {
+    position: absolute;
+    top: 35px; /* Move slightly down */
+    left: 32px; /* Move slightly right */
+    font-size: 4em;
+    color: red;
+    font-family: 'Game Of Squids', sans-serif;
+    display: none; /* Ensure it’s hidden initially */
+    z-index: 5;
+    width: 60px;
+    height: 60px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+}
+
+        .button {
+            background: limegreen;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1em;
+            font-family: 'Belshaw Donut Robot', sans-serif;
+        }
+
+        .retry-button {
+            background: red;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 7px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-family: 'Belshaw Donut Robot', sans-serif;
+            font-size: 1rem; /* Increased font size */
+            width: 180px; /* Set a larger width */
+            height: 50px; /* Set a larger height */
+            text-align: center;
+        }
+
+        .click-to-continue {
+            position: fixed;
+      bottom: 20px;
+      right: 20px;
+      color: rgba(255,255,255,0.8);
+      font-family: 'Belshaw Donut Robot', sans-serif;
+      font-size: 1.2rem;
+      animation: pulse 2s infinite;
+      display: block;
+      z-index: 5;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    </style>
+</head>
+<body>
+
+    <div class="player-info">
+        <img src="" class="player-photo" id="playerPhoto">
+        <div class="player-number" id="playerNumber">Player 000</div>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <div class="cross" id="cross">✖</div>
+
+        <div class="congrats-box" id="congratsBox">
+            <div>
+                <span style="font-size: 2.2rem;">Congratulations, Player <span id="congratsPlayerNumber"></span>!</span>
+                <br>
+                <span style="font-size: 1.8rem;">You survived.</span>
+            </div>
+            <button class="next-lesson-btn" id="nextLessonBtn" onclick="nextLesson()">Return to bunker</button>
+        </div>
+        
+        <div class="rules-box" id="rulesBox">
+            <div id="rulesText">Welcome to Red Light, Green Light... with a twist!</div>
+        </div>
+
+        <div class="question-box" id="questionBox">
+            <h2 id="questionText"></h2>
+            <div id="answers"></div>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <div>GAME OVER</div>
+            <button class="retry-button" onclick="retryQuestion()">Retry</button>
+        </div>
+    </div>
+
+    <div id="clickToContinue" class="click-to-continue">Click anywhere to continue</div>
+
+    <audio id="background-music" loop>
+        <source src="roboticsound.mp3" type="audio/mpeg">
+    </audio>
+
+<audio id="gameover-sound">
+    <source src="gameover.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="victory-sound">
+    <source src="stagepassed.mp3" type="audio/mpeg">
+</audio>
+
+    <script>
+
+        // Get the audio element
+        let bgMusic = document.getElementById("background-music");
+
+bgMusic.volume = 0.1;
+
+// Function to restart music if it stops
+bgMusic.addEventListener("ended", function() {
+    this.currentTime = 0; 
+    this.play(); 
+});
+
+// Auto-play on page load
+window.addEventListener("load", function() {
+    bgMusic.play().catch(error => {
+        console.log("Autoplay blocked, user interaction needed");
+    });
+});
+
+const playerPhoto = document.getElementById('playerPhoto');
+        const playerNumber = document.getElementById('playerNumber');
+        const robot = document.getElementById('robot');
+        const textBox = document.getElementById('textBox');
+        let dialogState = 0;
+        const savedNumber = localStorage.getItem('playerNumber') || '001';
+
+        playerPhoto.src = localStorage.getItem('playerPhoto');
+        playerNumber.textContent = `Player ${savedNumber}`;
+
+        let currentQuestion = 0;
+        const questions = [
+            {
+                question: "What is the key difference between Traditional AI and Gen AI?",
+                answers: [
+                    { text: "Traditional AI and Gen AI both generate creative stories from scratch", correct: false },
+                    { text: "Traditional AI follows predefined rules, while Gen AI creates new content", correct: true },
+                    { text: "Traditional AI can generate music and art, while Gen AI is only used for decision-making", correct: false }
+                ]
+            },
+            {
+                question: "What is the key difference between Gen AI and traditional search engines?",
+                answers: [
+                    { text: "Gen AI provides direct answers, while search engines give a list of links", correct: true },
+                    { text: "Gen AI only retrieves information, while search engines generate new content", correct: false },
+                    { text: "Gen AI and search engines work the same way, just with different branding", correct: false }
+                ]
+            },
+            {
+                question: "Which of the following is NOT a common use of Generative AI?",
+                answers: [
+                    { text: "Writing articles and poetry", correct: false },
+                    { text: "Repairing physical hardware", correct: true },
+                    { text: "Creating realistic images and artwork", correct: false }
+                ]
+            }
+        ];
+
+function retryQuestion() {
+    // Reset background to green light
+    document.getElementById('gameContainer').style.background = "url('greenlight.jpg') no-repeat center center/cover";
+
+    // Hide game over screen and cross properly
+    document.getElementById('gameOver').style.display = 'none';
+    document.getElementById('cross').style.display = 'none';
+
+    // Show the same question again (without resetting currentQuestion)
+    showQuestion(currentQuestion);
+}
+
+        // Game initialization
+        document.getElementById('gameContainer').style.background = "url('redlightgreenlight.jpg') no-repeat center center/cover";
+
+        // Click anywhere to progress
+        let tapCount = 0;  
+
+        document.body.addEventListener('click', function() {
+    const rulesBox = document.getElementById('rulesBox');
+    const rulesText = document.getElementById('rulesText');
+    const clickToContinue = document.getElementById('clickToContinue');
+
+    if (tapCount === 0) {
+        // Hide "Click anywhere to continue" after the first click
+        clickToContinue.style.display = 'none';
+
+        // First tap shows the rules
+        rulesText.textContent = "Answer the question when the light is green. If you answer wrong, the lights turn red, and your identity is wiped!";
+        tapCount++;
+    } else if (tapCount === 1) {
+        // Second tap starts the game immediately
+        rulesBox.style.display = 'none';
+        startGame();
+        tapCount++;
+    }
+});
+
+        function startGame() {
+            document.getElementById('gameContainer').style.background = "url('greenlight.jpg') no-repeat center center/cover";
+            showQuestion(currentQuestion);
+        }
+
+        function showQuestion(index) {
+            const question = questions[index];
+            const questionBox = document.getElementById('questionBox');
+            questionBox.style.display = 'block';
+            document.getElementById('questionText').textContent = question.question;
+            
+            const answersContainer = document.getElementById('answers');
+            answersContainer.innerHTML = '';
+            
+            question.answers.forEach(answer => {
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'answer-option';
+                answerDiv.textContent = answer.text;
+                answerDiv.onclick = () => checkAnswer(answer.correct);
+                answersContainer.appendChild(answerDiv);
+            });
+        }
+
+        function checkAnswer(isCorrect) {
+    if (isCorrect) {
+        if (currentQuestion < questions.length - 1) {
+            currentQuestion++;
+            showQuestion(currentQuestion);
+        } else {
+            // Last question answered correctly -> Show Congrats Screen
+            document.getElementById('questionBox').style.display = 'none'; 
+            document.getElementById('gameContainer').style.background = "url('redlightgreenlight.jpg') no-repeat center center/cover";
+            let congratsBox = document.getElementById('congratsBox');
+            congratsBox.style.display = 'flex'; // Ensure it's flex for proper centering
+
+            let victorySound = document.getElementById('victory-sound');
+    victorySound.currentTime = 0;  // Reset sound to start
+    victorySound.play();
+
+            // Show Next Lesson button properly
+            let nextLessonBtn = document.getElementById('nextLessonBtn');
+nextLessonBtn.style.display = 'block'; 
+nextLessonBtn.style.marginTop = '20px'; 
+            nextLessonBtn.style.display = 'block';
+        }
+    } else {
+        // Wrong answer -> Show Game Over
+        document.getElementById('gameContainer').style.background = "url('redlight.jpg') no-repeat center center/cover";
+        document.getElementById('questionBox').style.display = 'none';
+        document.getElementById('gameOver').style.display = 'flex';
+        document.getElementById('cross').style.display = 'flex'; 
+
+        let gameOverSound = document.getElementById('gameover-sound');
+        gameOverSound.currentTime = 0;  // Reset sound to start
+        gameOverSound.play();
+    }
+}
+
+document.getElementById('congratsPlayerNumber').textContent = savedNumber;
+
+        function nextLesson() {
+            window.location.href = 'thirdpage.html';
+        }
+
+    </script>
+</body>
+</html>

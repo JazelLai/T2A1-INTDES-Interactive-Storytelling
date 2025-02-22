@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Second Page</title>
+  <style>
+    @import url('https://fonts.cdnfonts.com/css/belshaw-donut-robot');
+    @import url('https://fonts.cdnfonts.com/css/game-of-squids');
+    @import url('https://fonts.cdnfonts.com/css/robots-revenge');
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Game Of Squids', sans-serif;
+      height: 100vh;
+      background: url('bunker.png') center center;
+      background-size: cover;
+      cursor: url('robotcursor.png') 16 16, auto
+    }
+
+    /* Player info container */
+    .player-info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 10px;
+      z-index: 3;
+    }
+
+    .player-photo {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid pink;
+    }
+
+    .player-number {
+      font-family: 'Belshaw Donut Robot', sans-serif;
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    .robot {
+  position: absolute;
+  left: -450px; 
+  bottom: -5%;
+  width: 910px; 
+  height: auto;
+  animation: robotEntry 2s ease-in-out forwards; 
+}
+
+    @keyframes robotEntry {
+      0% { left: -450px; transform: scale(0.8); }
+      60% { left: -270px; transform: scale(1.1); }
+      100% { left: -250px; transform: scale(1); } 
+    }
+
+    .text-box {
+      position: absolute;
+      left: 65%;
+      bottom: 44%; 
+      width: 38%;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid pink;
+      border-radius: 10px;
+      color: white;
+      font-family: 'Belshaw Donut Robot', sans-serif;
+      font-size: 1.5rem;
+      text-align: center;
+      z-index: 2;
+      transform: translateX(-50%);
+      line-height: 1.1;
+    }
+
+    .text-box::before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      bottom: 30px;
+      border-width: 15px 20px 15px 0;
+      border-style: solid;
+      border-color: transparent rgba(0,0,0,0.9) transparent transparent;
+    }
+
+    .click-prompt {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      color: rgba(255,255,255,0.8);
+      font-family: 'Belshaw Donut Robot', sans-serif;
+      font-size: 1.2rem;
+      animation: pulse 2s infinite;
+      display: block;
+      z-index: 5;
+    }
+
+    /* Go to Lesson button */
+    .lesson-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: pink;
+      border: none;
+      color: black;
+      font-family: 'Belshaw Donut Robot', sans-serif;
+      font-size: 1.2rem;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      animation: flicker 1.5s infinite alternate;
+      display: none;
+}
+
+.lesson-button:hover {
+    box-shadow: 0 0 15px pink;
+    transform: scale(1.1);
+}
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="player-info">
+    <img src="" class="player-photo" id="playerPhoto">
+    <div class="player-number" id="playerNumber">Player 000</div>
+  </div>
+
+  <img src="wavingrobot.png" class="robot" id="robot">
+  <div class="text-box" id="textBox">Greetings, I am Player 001, your mentor.</div>
+  <div class="click-prompt" id="clickPrompt">Click anywhere to continue</div>
+
+  <button class="lesson-button" id="goToLesson" onclick="window.location.href='lessonone.html'">Go to Lesson</button>
+
+  <audio id="background-music" loop>
+    <source src="roboticsound.mp3" type="audio/mpeg">
+</audio>
+
+  <script>
+
+
+    // Get the audio element
+    let bgMusic = document.getElementById("background-music");
+
+    bgMusic.volume = 0.1;
+
+    // Function to restart music if it stops
+    bgMusic.addEventListener("ended", function() {
+        this.currentTime = 0; 
+        this.play(); 
+    });
+
+    // Auto-play on page load
+    window.addEventListener("load", function() {
+        bgMusic.play().catch(error => {
+            console.log("Autoplay blocked, user interaction needed");
+        });
+    });
+
+    const playerPhoto = document.getElementById('playerPhoto');
+    const playerNumber = document.getElementById('playerNumber');
+    const robot = document.getElementById('robot');
+    const textBox = document.getElementById('textBox');
+    let dialogState = 0;
+    const savedNumber = localStorage.getItem('playerNumber') || '001';
+    
+    // Initial setup
+    playerPhoto.src = localStorage.getItem('playerPhoto');
+    playerNumber.textContent = `Player ${savedNumber}`;
+
+    // Dialog progression (triggered on user click)
+
+    document.body.addEventListener('click', () => {
+  if (dialogState === 0) {
+    clickPrompt.style.display = 'none';
+  }
+      dialogState++;
+
+      switch(dialogState) {
+        case 1:
+          textBox.innerHTML = `I see you've chosen to be Player ${savedNumber}!`;
+          robot.src = 'kindrobot.png';
+          break;
+        case 2:
+          textBox.innerHTML = "As you know, in 2095, Gen AI is now integrated into society and the government mandates that all citizens must master it!";
+          robot.src = 'instructionalrobot.png';
+          break;
+        case 3:
+          textBox.innerHTML = "You must prove your knowledge in 3 games. Fail and your identity will be erased... forever!";
+          break;
+        case 4:
+          textBox.innerHTML = `But you're in luck... because I've played these games before!`;
+          robot.src = 'thesternrobot.png';
+          break;
+        case 5:
+          textBox.innerHTML = `Just sit through my lessons, starting with an introduction to Gen AI and its uses.`;
+          robot.src = 'kindrobot.png';
+          break;
+        case 6:
+          goToLesson.style.display = "block"; // Show button at the end
+          break;
+      }
+      
+    });
+
+  </script>
+</body>
+</html>
